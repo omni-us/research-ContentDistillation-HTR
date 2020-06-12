@@ -13,16 +13,6 @@ w_rec = 1.
 gpu = torch.device('cuda')
 
 
-# an example to do the trade-off between gamma1 and gamma2
-def obtain_gamma(epoch):
-    gamma_1 = 1
-    if epoch < 60:
-        gamma_2 = 1
-    else:
-        gamma_2 = 0
-    return gamma_1, gamma_2
-
-
 class ConTranModel(nn.Module):
     def __init__(self, num_writers, show_iter_num, oov):
         super(ConTranModel, self).__init__()
@@ -46,7 +36,6 @@ class ConTranModel(nn.Module):
         tr_img_widthc = tr_img_widthc.to(gpu)
         tr_labelc = tr_labelc[:,:,1:].squeeze(1).to(gpu)
         batch_size = tr_domain.shape[0]
-        gamma_1, gamma_2 = obtain_gamma(epoch)
 
         if mode == 'rec_disentangle_update':
             f_rec, f_xt = self.gen.enc_text(tr_img, None, mode='con_enc') # b,4096  b,512,8,27
@@ -55,7 +44,7 @@ class ConTranModel(nn.Module):
             pred_xt_trc = self.rec(f_recc, tr_labelc, img_width=torch.from_numpy(np.array([IMG_WIDTH]*batch_size)), mode='feature')
             l_rec_tr = crit(log_softmax(pred_xt_tr.reshape(-1,vocab_size)), tr_label.reshape(-1))
             l_rec_trc = crit(log_softmax(pred_xt_trc.reshape(-1,vocab_size)), tr_labelc.reshape(-1))
-            l_rec = gamma_1 * (l_rec_tr + l_rec_trc)/2.
+            l_rec = (l_rec_tr + l_rec_trc)/2.
 
             cer0, cer1 = cer_func
             cer0.add(pred_xt_tr, tr_label)
@@ -147,7 +136,6 @@ class ConTranModel(nn.Module):
 
             '''fin'''
             l_total = w_dis * l_dis + w_cla * l_cla + w_rec * l_rec
-            l_total = gamma_2 * l_total
             l_total.backward()
             return l_total, l_dis, l_cla, l_rec
 

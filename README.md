@@ -47,6 +47,10 @@ Or to start with a saved checkpoint:
 ```
 And don't forget to change the epoch ID in this shell script to load the correct weights of the model that is corresponding to the epoch ID.
 
+## How to boost the HTR performance?
+
+After the content distillation model is trained properly by early stopping, load the recognizer module `ConTranModel.rec` and do the fine-tuning with IAM training set alone. The Seq2Seq HTR recognizer can be found [here](https://github.com/omni-us/research-seq2seq-HTR). 
+
 ## Citation
 
 If you use the code for your research or application, please cite our paper:
